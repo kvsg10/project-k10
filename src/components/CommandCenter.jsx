@@ -32,7 +32,7 @@ export default function CommandCenter() {
       }
 
       // Use the recommended model for text
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
       // Structure the prompt to give it the K10 persona
       const prompt = `You are K10, an advanced, highly capable AI assistant operating a futuristic dashboard for the user. Keep your responses concise, helpful, and slightly professional/robotic but friendly. User says: "${userText}"`;
