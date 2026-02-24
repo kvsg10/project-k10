@@ -1,0 +1,59 @@
+.notes-widget {
+    min-height: 250px;
+    position: relative;
+}
+
+.widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.header-icon {
+    margin-right: 8px;
+    color: var(--text-main);
+}
+
+.save-btn {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.saved-icon {
+    color: #00ff88;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 136, 0.6));
+}
+
+.notes-textarea {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    font-family: monospace;
+    font-size: 0.95rem;
+    padding: 12px;
+    resize: none;
+    width: 100%;
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.notes-textarea:focus {
+    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.notes-textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.save-indicator {
+    position: absolute;
+    bottom: 32px;
+    right: 32px;
+    font-size: 0.8rem;
+    color: #00ff88;
+    animation: fadeIn 0.3s ease;
+    pointer-events: none;
+}
