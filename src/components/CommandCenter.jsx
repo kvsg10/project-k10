@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Mic, Command, Send, User, Cpu } from 'lucide-react';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import './CommandCenter.css';
+
+// Initialize Gemini (Replace with actual env variable when deployed)
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "dummy_key";
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 export default function CommandCenter() {
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState([
-    { id: 1, sender: 'k10', text: 'Hello. I am K10. How can I assist you today?' }
+    { id: 1, sender: 'k10', text: 'Hello. I am K10, powered by Google Gemini. How can I assist you today?' }
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
@@ -18,27 +23,35 @@ export default function CommandCenter() {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const handleMockAIResponse = (userText) => {
+  const handleGeminiResponse = async (userText) => {
     setIsTyping(true);
 
-    // Simulated AI thinking delay
-    setTimeout(() => {
-      const lowerText = userText.toLowerCase();
-      let aiResponse = "I process your command, but my databanks are currently limited to simulation mode.";
-
-      if (lowerText.includes('hello') || lowerText.includes('hi')) {
-        aiResponse = "Greetings. All systems are operating within normal parameters.";
-      } else if (lowerText.includes('weather')) {
-        aiResponse = "I cannot access live weather data yet. Would you like me to simulate a forecast?";
-      } else if (lowerText.includes('task')) {
-        aiResponse = "I have noted your request regarding tasks, but cannot directly alter the widget yet.";
-      } else if (lowerText.includes('time')) {
-        aiResponse = `The current system time is ${new Date().toLocaleTimeString()}.`;
+    try {
+      if (API_KEY === "dummy_key" || !API_KEY) {
+        throw new Error("Missing Gemini API Key. Please add VITE_GEMINI_API_KEY to your .env.local file.");
       }
 
-      setMessages(prev => [...prev, { id: Date.now(), sender: 'k10', text: aiResponse }]);
+      // Use the recommended model for text
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+      // Structure the prompt to give it the K10 persona
+      const prompt = `You are K10, an advanced, highly capable AI assistant operating a futuristic dashboard for the user. Keep your responses concise, helpful, and slightly professional/robotic but friendly. User says: "${userText}"`;
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'k10', text: text }]);
+    } catch (error) {
+      console.error("Gemini API Error:", error);
+      let errorMsg = "I encountered an error connecting to my neural network.";
+      if (error.message.includes("API Key")) {
+        errorMsg = "My connection to the Gemini API is offline. Please configure the VITE_GEMINI_API_KEY environment variable.";
+      }
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'k10', text: errorMsg }]);
+    } finally {
       setIsTyping(false);
-    }, 1200);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -49,7 +62,7 @@ export default function CommandCenter() {
     setMessages(prev => [...prev, newUserMessage]);
     setQuery('');
 
-    handleMockAIResponse(newUserMessage.text);
+    handleGeminiResponse(newUserMessage.text);
   };
 
   return (
