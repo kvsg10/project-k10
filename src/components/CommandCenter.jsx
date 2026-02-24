@@ -1,16 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Mic, Command, Send, User, Cpu } from 'lucide-react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
 import './CommandCenter.css';
 
-// Initialize Gemini (Replace with actual env variable when deployed)
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "dummy_key";
-const genAI = new GoogleGenerativeAI(API_KEY);
+// Initialize OpenAI (Replace with actual env variable when deployed)
+const API_KEY = import.meta.env.VITE_OPENAI_API_KEY || "dummy_key";
+const openai = new OpenAI({
+  apiKey: API_KEY,
+  dangerouslyAllowBrowser: true // Required for client-side Vite usage
+});
 
 export default function CommandCenter() {
   const [query, setQuery] = useState('');
   const [messages, setMessages] = useState([
-    { id: 1, sender: 'k10', text: 'Hello. I am K10, powered by Google Gemini. How can I assist you today?' }
+    { id: 1, sender: 'k10', text: 'Hello. I am K10, powered by OpenAI. How can I assist you today?' }
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
@@ -23,30 +26,29 @@ export default function CommandCenter() {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const handleGeminiResponse = async (userText) => {
+  const handleOpenAIResponse = async (userText) => {
     setIsTyping(true);
 
     try {
       if (API_KEY === "dummy_key" || !API_KEY) {
-        throw new Error("Missing Gemini API Key. Please add VITE_GEMINI_API_KEY to your .env.local file.");
+        throw new Error("Missing OpenAI API Key. Please add VITE_OPENAI_API_KEY to your .env.local file.");
       }
 
-      // Use the recommended model for text
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const response = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          { role: "system", content: "You are K10, an advanced, highly capable AI assistant operating a futuristic dashboard for the user. Keep your responses concise, helpful, and slightly professional/robotic but friendly." },
+          { role: "user", content: userText }
+        ],
+      });
 
-      // Structure the prompt to give it the K10 persona
-      const prompt = `You are K10, an advanced, highly capable AI assistant operating a futuristic dashboard for the user. Keep your responses concise, helpful, and slightly professional/robotic but friendly. User says: "${userText}"`;
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-
+      const text = response.choices[0].message.content;
       setMessages(prev => [...prev, { id: Date.now(), sender: 'k10', text: text }]);
     } catch (error) {
-      console.error("Gemini API Error:", error);
+      console.error("OpenAI API Error:", error);
       let errorMsg = `I encountered an error connecting to my neural network: ${error.message}`;
-      if (error.message.includes("API Key")) {
-        errorMsg = "My connection to the Gemini API is offline. Please configure the VITE_GEMINI_API_KEY environment variable.";
+      if (error.message.includes("API code") || error.message.includes("API key")) {
+        errorMsg = "My connection to the OpenAI API is offline. Please configure the VITE_OPENAI_API_KEY environment variable.";
       }
       setMessages(prev => [...prev, { id: Date.now(), sender: 'k10', text: errorMsg }]);
     } finally {
@@ -62,7 +64,7 @@ export default function CommandCenter() {
     setMessages(prev => [...prev, newUserMessage]);
     setQuery('');
 
-    handleGeminiResponse(newUserMessage.text);
+    handleOpenAIResponse(newUserMessage.text);
   };
 
   return (
