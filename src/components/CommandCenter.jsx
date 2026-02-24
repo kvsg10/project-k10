@@ -32,7 +32,7 @@ export default function CommandCenter() {
       }
 
       // Use the recommended model for text
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
       // Structure the prompt to give it the K10 persona
       const prompt = `You are K10, an advanced, highly capable AI assistant operating a futuristic dashboard for the user. Keep your responses concise, helpful, and slightly professional/robotic but friendly. User says: "${userText}"`;
@@ -44,7 +44,7 @@ export default function CommandCenter() {
       setMessages(prev => [...prev, { id: Date.now(), sender: 'k10', text: text }]);
     } catch (error) {
       console.error("Gemini API Error:", error);
-      let errorMsg = "I encountered an error connecting to my neural network.";
+      let errorMsg = `I encountered an error connecting to my neural network: ${error.message}`;
       if (error.message.includes("API Key")) {
         errorMsg = "My connection to the Gemini API is offline. Please configure the VITE_GEMINI_API_KEY environment variable.";
       }
